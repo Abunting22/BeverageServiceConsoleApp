@@ -12,5 +12,7 @@ namespace BeverageServiceConsoleApp
         public string BettorName { get; set; }
         public int Wager { get; set; }
         public string Winner { get; set; }
+        public string WagerDescription { get; set; }
+        public DateOnly WagerDate { get; set; }
     }
 }

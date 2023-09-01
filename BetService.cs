@@ -9,43 +9,56 @@ namespace BeverageServiceConsoleApp
 {
     public class BetService
     {
-        public Bet CreateNewBet()
+        public Bet CreateNewBet(Bet bet)
         {
-            var bet = new Bet();
+            var newBet = new Bet();
             Console.WriteLine("Who are you making the bet with?");
             bet.BettorName = Console.ReadLine();
             Console.WriteLine("What is the wager?");
             bet.Wager = int.Parse(Console.ReadLine());
+            Console.WriteLine("What is the reason for the bet");
+            bet.WagerDescription = Console.ReadLine();
             Console.WriteLine($"I bet {bet.BettorName} {bet.Wager} drinks!");
+            bet.WagerDate = DateOnly.FromDateTime(DateTime.Now);
 
-            SQLDatabaseOperations.AddNewBetToDatabase(bet.BettorName, bet.Wager);
+            SQLDatabaseOperations.AddNewBetToDatabase(bet);
 
-            return bet;
+            return newBet;
         }
-
-        //public void DeclareBetWinner(Bet bet)
-        //{
-        //    Console.WriteLine("Who won?");
-        //    var winner = Console.ReadLine();
-
-        //    if (winner == bet.BettorName)
-        //    {
-        //        Console.WriteLine($"{bet.BettorName} won!\nI owe {bet.BettorName} {bet.Wager} drinks!\nBottoms Up!");
-        //    }
-        //    else
-        //    {
-        //        Console.WriteLine($"I won!\nI won {bet.Wager} drinks from {bet.BettorName}!\nBottoms Up!");
-        //    }
-        //}
 
         public void ViewAllBets()
         {
             SQLDatabaseOperations.ViewAllBetsInDatabase();
         }
 
-        public void UpdateBet()
+        public void UpdateBet(Bet bet)
         {
-            SQLDatabaseOperations.UpdateBetInDatabase();
+            Console.WriteLine("What would you like to update?\n1. Name\n2. Wager\n3. Description\n4. Declare Winner\n5. Return to Main Menu");
+            var userConsoleInput = int.Parse(Console.ReadLine());
+
+            switch (userConsoleInput)
+            {
+                case 1:
+                    {
+                        SQLDatabaseOperations.UpdateBetByNameInDatabase();
+                        break;
+                    }
+                case 2: 
+                    {
+                        SQLDatabaseOperations.UpdateBetByWagerInDatabase();
+                        break;
+                    }
+                case 3: 
+                    {
+                        SQLDatabaseOperations.UpdateBetByDescriptionInDatabase();
+                        break;
+                    }
+                case 4:
+                    {
+                        SQLDatabaseOperations.UpdateBetByDeclaringWinner(bet);
+                        break;
+                    }
+            }
         }
 
         public void DeleteBet()
