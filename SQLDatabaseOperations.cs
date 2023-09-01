@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Data.SqlTypes;
 
 namespace BeverageServiceConsoleApp
 {
@@ -14,24 +15,21 @@ namespace BeverageServiceConsoleApp
         
         private static readonly SqlConnection sqlConnection = new SqlConnection(databaseConnectionString);
 
-        public static void GetBet(Bet bet)
-        {
-            var bettorname = bet.BettorName;
-            var wager = bet.Wager;
-        }
-
-        public static void AddNewBetToDatabase(string bettorName, int wager)
+        public static void AddNewBetToDatabase(Bet bet)
         {        
             sqlConnection.Open();
 
-            string insertQuery = "INSERT INTO Wagers (bettor_name, wager_value) VALUES (@BettorName, @Wager)";
+            var insertQuery = "INSERT INTO Wagers (bettor_name, wager_value, bet_description, wager_date) VALUES (@BettorName, @Wager, @BetDescription, @WagerDate)";
 
             using SqlCommand command = new(insertQuery, sqlConnection);
 
-            command.Parameters.AddWithValue("@BettorName", bettorName);
-            command.Parameters.AddWithValue("@Wager", wager);
+            command.Parameters.AddWithValue("@BettorName", bet.BettorName);
+            command.Parameters.AddWithValue("@Wager", bet.Wager);
+            command.Parameters.AddWithValue("@BetDescription", bet.WagerDescription);
+            command.Parameters.AddWithValue("@WagerDate", bet.WagerDate.ToString());
 
-            int executeQuery = command.ExecuteNonQuery();
+
+            var executeQuery = command.ExecuteNonQuery();
             Console.WriteLine($"{executeQuery} bet added\nPress enter to return to Main Menu...\n");
             Console.ReadLine();
 
@@ -42,7 +40,7 @@ namespace BeverageServiceConsoleApp
         {
             sqlConnection.Open();
 
-            string viewQuery = "SELECT * FROM Wagers";
+            var viewQuery = "SELECT * FROM Wagers";
 
             using SqlCommand command = new(viewQuery, sqlConnection);
 
@@ -50,10 +48,13 @@ namespace BeverageServiceConsoleApp
             using SqlDataReader reader = command.ExecuteReader();
             while (reader.Read()) 
             {
-                string bettorName = reader["bettor_name"].ToString();
-                string wagerValue = reader["wager_value"].ToString();
+                var bettorName = reader["bettor_name"].ToString();
+                var wagerValue = reader["wager_value"].ToString();
+                var wagerDescription = reader["bet_description"].ToString();
+                var wagerDate = reader["wager_date"].ToString();
+                var betWinner = reader["bet_winner"].ToString();
 
-                Console.WriteLine($"Bettor: {bettorName}, Wager: {wagerValue}");
+                Console.WriteLine($"Bettor: {bettorName}| Wager: {wagerValue}| Description: {wagerDescription}| Winner: {betWinner}| Date: {wagerDate}");
             }
 
             Console.WriteLine("Press enter to return to Main Menu...");
@@ -62,54 +63,82 @@ namespace BeverageServiceConsoleApp
             sqlConnection.Close();
         }
 
-        public static void UpdateBetInDatabase()
+        public static void UpdateBetByNameInDatabase()
         {
             sqlConnection.Open();
 
-            Console.WriteLine("Would you like to change a:\n Name or Wager?");
-            var userColumnChoice = Console.ReadLine().ToLower();
+            Console.WriteLine("What is the name and wager of the bet you would like to change?\nEx: Jon = 2\n");
+            var condition = Console.ReadLine();
 
-            if (userColumnChoice == "name")
-            {
-                Console.WriteLine("What is the current name that you would like to change?");
-                var currentValue = Console.ReadLine();
-                Console.WriteLine("What should the name be?");
-                var newUserValue = Console.ReadLine();
+            Console.WriteLine("What should the new name be?");
+            var newNameValue = Console.ReadLine();
 
-                var condition = $"bettor_name = {currentValue}";
-                string updateQuery = $"UPDATE Wagers\nSET bettor_name = @NewValue Where {condition}";
+            var updateQuery = $"UPDATE Wagers\nSET bettor_name = {newNameValue}\nWHERE {condition}";
+            using SqlCommand command = new(updateQuery, sqlConnection);
 
-                using SqlCommand command = new(updateQuery, sqlConnection);
+            command.ExecuteNonQuery();
+            Console.WriteLine("Bet updated. Press enter to return to Main Menu...");
+            Console.ReadLine();
 
-                command.Parameters.AddWithValue("@NewValue", newUserValue);
+            sqlConnection.Close();
+        }
 
-                var executeQuery = command.ExecuteNonQuery();
-                Console.WriteLine($"{executeQuery} bets updated.\nPress enter to return to Main Menu...");
-                Console.ReadLine();
-            }
-            else if (userColumnChoice == "wager")
-            {
-                Console.WriteLine("What is the current wager that you would like to change?");
-                var currentValue = Console.ReadLine();
-                Console.WriteLine("What should the wager be?");
-                var newUserValue = Console.ReadLine();
+        public static void UpdateBetByWagerInDatabase()
+        {
+            sqlConnection.Open();
 
-                var condition = $"wager_value = {currentValue}";
-                string updateQuery = $"UPDATE Wagers\nSET wager_value = @NewValue Where {condition}";
+            Console.WriteLine("What is the name and wager of the bet you would like to change?\nEx: Jon = 2\n");
+            var condition = Console.ReadLine();
 
-                using SqlCommand command = new(updateQuery, sqlConnection);
+            Console.WriteLine("What should the new wager be?");
+            var newWagerValue = Console.ReadLine();
 
-                command.Parameters.AddWithValue("@NewValue", newUserValue);
+            var updateQuery = $"UPDATE Wagers\nSET wager_value = {newWagerValue}\nWHERE {condition}";
+            using SqlCommand command = new(updateQuery, sqlConnection);
 
-                var executeQuery = command.ExecuteNonQuery();
-                Console.WriteLine($"{executeQuery} bets updated.\nPress enter to return to Main Menu...");
-                Console.ReadLine();
-            }
-            else
-            {
-                Console.WriteLine("Press enter to return to Main Menu...");
-                Console.ReadLine();
-            }
+            command.ExecuteNonQuery();
+            Console.WriteLine("Bet updated. Press enter to return to Main Menu...");
+            Console.ReadLine();
+
+            sqlConnection.Close();
+        }
+
+        public static void UpdateBetByDescriptionInDatabase()
+        {
+            sqlConnection.Open();
+
+            Console.WriteLine("What is the name and wager of the bet you would like to change?\nEx: Jon = 2\n");
+            var condition = Console.ReadLine();
+
+            Console.WriteLine("What should the new description be?");
+            var newDescription = Console.ReadLine();
+
+            var updateQuery = $"UPDATE Wagers\nSET bettor_name = {newDescription}\nWHERE {condition}";
+            using SqlCommand command = new(updateQuery, sqlConnection);
+
+            command.ExecuteNonQuery();
+            Console.WriteLine("Bet updated. Press enter to return to Main Menu...");
+            Console.ReadLine();
+
+            sqlConnection.Close();
+        }
+
+        public static void UpdateBetByDeclaringWinner(Bet bet)
+        {
+            sqlConnection.Open();
+
+            Console.WriteLine("Who won?");
+            bet.Winner = Console.ReadLine();
+
+            var addQuery = $"UPDATE Wagers SET bet_winner = @BetWinner WHERE bettor_name = '{bet.Winner}'";
+            SqlCommand command = new(addQuery, sqlConnection);
+
+            command.Parameters.AddWithValue("@BetWinner", bet.Winner);
+
+            command.ExecuteNonQuery();
+
+            Console.WriteLine("Winner added.\nPress enter to return to Main Menu...");
+            Console.ReadLine();
 
             sqlConnection.Close();
         }
@@ -119,12 +148,12 @@ namespace BeverageServiceConsoleApp
             sqlConnection.Open();
 
             Console.WriteLine("Type the name of the bet you would like to delete\n");
-            string condition = Console.ReadLine();
-            string deleteQuery = $"DELETE FROM Wagers WHERE bettor_name = '{condition}'";
+            var condition = Console.ReadLine();
+            var deleteQuery = $"DELETE FROM Wagers WHERE bettor_name = '{condition}'";
 
             using SqlCommand command = new(deleteQuery, sqlConnection);
 
-            int executeQuery = command.ExecuteNonQuery();
+            var executeQuery = command.ExecuteNonQuery();
             Console.WriteLine("Bet deleted\nPress enter to return to Main Menu...\n");
             Console.ReadLine();
 
@@ -139,7 +168,7 @@ namespace BeverageServiceConsoleApp
             var condition = Console.ReadLine().ToLower();
             if (condition == "yes")
             {
-                string deleteAllQuery = "DELETE FROM Wagers";
+                var deleteAllQuery = "DELETE FROM Wagers";
                 using SqlCommand command = new(deleteAllQuery, sqlConnection);
                 command.ExecuteNonQuery();
                 Console.WriteLine("All bets have been deleted.\nPress enter to return to Main Menu...");
