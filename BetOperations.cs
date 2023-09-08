@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace BeverageServiceConsoleApp
 {
-    public class BetService
+    public class BetOperations
     {
         public Bet CreateNewBet(Bet bet)
         {
             var newBet = new Bet();
             Console.WriteLine("Who are you making the bet with?");
             bet.BettorName = Console.ReadLine();
-            Console.WriteLine("What is the wager?");
+            Console.WriteLine("How many drinks are being wagered?");
             bet.Wager = int.Parse(Console.ReadLine());
             Console.WriteLine("What is the reason for the bet");
             bet.WagerDescription = Console.ReadLine();
@@ -29,6 +29,11 @@ namespace BeverageServiceConsoleApp
         public void ViewAllBets()
         {
             SQLDatabaseOperations.ViewAllBetsInDatabase();
+        }
+
+        public void SearchBet()
+        {
+            SQLDatabaseOperations.SearchDatabase();
         }
 
         public void UpdateBet(Bet bet)
